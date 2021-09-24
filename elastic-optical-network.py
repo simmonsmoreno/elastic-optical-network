@@ -6,11 +6,19 @@ import networkx
 import random
 import simpy
 
+from patsy import dmatrices
+from statsmodels.stats.proportion import proportion_confint
+
 # GLOBAL VARIABLES
 PKT_SENTS = 0
-SLOTS_NUMBER = 10
-TXRX_NUMBER = 6
+SLOTS_NUMBER = 320
+TXRX_NUMBER = 1000
 TASA_BLOQ = []
+DURATION = 5
+LOAD = 0.1
+NUM_MAX_SLOTS = 24
+NUM_MAX_PET = 1000
+NUM_ELIM = 100
 
 
 class LightPathRequest(object):
@@ -34,7 +42,7 @@ class LigthPathGenerator(object):
         Establece la variable miembro "out" a la entidad que recibirá el paquete.
     """
 
-    def __init__(self, id, avegLightpathDuration, numberNodes=5, load=0):
+    def __init__(self, id, avegLightpathDuration, load, numberNodes=14):
         self.id = id
         self.avegLightpathDuration = avegLightpathDuration
         self.timeBetweenReq = avegLightpathDuration / (load * (numberNodes-1))
@@ -51,23 +59,23 @@ class LigthPathGenerator(object):
 
         global PKT_SENTS
 
-        while PKT_SENTS < 10:
+        while PKT_SENTS < NUM_MAX_PET:
 
             # esperar la próxima transmisión
-            duration = random.expovariate(1.0/self.timeBetweenReq)
+            duration = random.expovariate(1.0/self.avegLightpathDuration)
 
             # El tiempo entre peticiones que hace cada fuente, se calcula de
             # forma aleatoria con una variable de tipo exponencial con media
-            yield env.timeout(random.expovariate(self.timeBetweenReq))
+            yield env.timeout(random.expovariate(1.0/self.timeBetweenReq))
 
             # El nodoDestino de la peticion del lightpath se genera de forma aleatoria entre el resto de destinos
-            destino = list(range(1, self.numberNodes+1))
+            destino = list(range(0, self.numberNodes))
 
             if self.id in destino:
                 destino.remove(self.id)
 
             dst = random.choice(destino)
-            nslots = random.randint(1, 3)
+            nslots = random.randint(1, NUM_MAX_SLOTS)
             now = env.now
 
             # LightPathRquest(self, id, src, dst, time, duration, nslots):
@@ -110,12 +118,12 @@ class Control(object):
                     TASA_BLOQ.append(0)                 # Si el lightpath se ha establecido, guardamos un 0
                     
                     # print('\033[96m'"[{}]\t\t#{}\tt={}s\t\td={}s\t\tf={}s\t\t#slots={}\t\tnodo{} ==> nodo{}"'\033[0m' .format(round(env.now, 2), pkt.id, round(pkt.time, 2), round(pkt.duration, 2), round(pkt.time+pkt.duration, 2), pkt.nslots, pkt.src, pkt.dst))
-                    print('\033[96m'"nodo{} ==> nodo{}\t\t#slots={}"'\033[0m' .format(pkt.src, pkt.dst, pkt.nslots))
+                    # print('\033[96m'"nodo{} ==> nodo{}\t\t#slots={}"'\033[0m' .format(pkt.src, pkt.dst, pkt.nslots))
 
                     # time.sleep(2)
                 else:
-                    print('\033[91m'"{} ==> {} #slots = {}"'\033[91m' .format(pkt.src, pkt.dst, pkt.nslots))
-                    print('\033[91m''Unavailable resources. REQUEST LOST!''\033[91m')
+                    # print('\033[91m'"{} ==> {} #slots = {}"'\033[91m' .format(pkt.src, pkt.dst, pkt.nslots))
+                    # print('\033[91m''Unavailable resources. REQUEST LOST!''\033[91m')
                     self.pkt_lost.append(pkt)           # save the packet in the list of lost packets
                     TASA_BLOQ.append(1)                 # Si el lightpath NO se ha establecido (porque no hay transmisores, receptores o "slots"), guardamos un 1
                     # time.sleep(2)
@@ -148,13 +156,12 @@ class Control(object):
                         slo = p.slot_used[i]
                         self.slots[slo[0]][slo[1]] = True
 
-                    print('\033[93m'"[{}]\t\t#{}\tFINISHED ::: #slots={}\t\tnodo{} ==> nodo{}"'\033[0m' .format(
-                        round(p.time+p.duration, 2), p.id, p.nslots, p.src, p.dst))
+                    # print('\033[93m'"[{}]\t\t#{}\tFINISHED ::: #slots={}\t\tnodo{} ==> nodo{}"'\033[0m' .format(
+                        # round(p.time+p.duration, 2), p.id, p.nslots, p.src, p.dst))
 
         else:
-            for p in pkt_sent:
-                print('\033[93m'"[{}]\t\t#{}\tFINISHED"'\033[0m' .format(
-                    round(p.time+p.duration, 2), p.id))
+            # for p in pkt_sent:
+                # print('\033[93m'"[{}]\t\t#{}\tFINISHED"'\033[0m' .format(round(p.time+p.duration, 2), p.id))
 
             self.pkt_sent.clear()
             
@@ -230,8 +237,8 @@ class Control(object):
         # table_slots = tabulate(slots, headers_slots, tablefmt="fancy_grid")
         table_slots = tabulate(slots, headers_slots, tablefmt="fancy_grid", showindex=self.network.edges)
 
-        print(table_txrx)
-        print(table_slots)
+        # print(table_txrx)
+        # print(table_slots)
 
     def checkSlotsFirstFit(self, n, l):
         l = sorted(l)
@@ -281,14 +288,37 @@ class Control(object):
 G = networkx.DiGraph() 
 
 # network topology:
-G.add_nodes_from([1,2,3,4,5])
-G.add_edges_from([(1,2), (2,1), (1,4), (4,1), (2,3), (3,2), (2,5), (5,2), (3,5), (5,3), (4,5), (5,4)])
+# G.add_nodes_from([1,2,3,4,5])
+# G.add_edges_from([(1,2), (2,1), (1,4), (4,1), (2,3), (3,2), (2,5), (5,2), (3,5), (5,3), (4,5), (5,4)])
 
-print(G.edges)
+# G.add_nodes_from([i for i in range(14)])
+G.add_nodes_from([0,1,2,3,4,5,6,7,8,9,10,11,12,13])
+G.add_edges_from([
+    (0,1), (0,2), (0,7),
+    (1,0), (1,2), (1,3),
+    (2,0), (2,1), (2,5), 
+    (3,1), (3,4), (3,10),
+    (4,3), (4,5), (4,6),
+    (5,2), (5,4), (5,9), (5,13),
+    (6,4), (6,7), 
+    (7,0), (7,6), (7,8),
+    (8,7), (8,9), (8,11), (8,12),
+    (9,5), (9,8), 
+    (10,3), (10,11), (10,12),
+    (11,8), (11,10), (11,13),
+    (12,8), (12,10), (12,13),
+    (13,5), (13,11), (13,12)
+    ])
+
+# print(G.edges)
 
 env = simpy.Environment()  # Crea el entorno SimPy
 
-duration = float(input('Duration >> '))
+# duration = float(input('Duration >> '))
+# LOAD = float(input('LOAD >> '))
+
+print("===============================================================================")
+print('Load = {}' .format(LOAD))
 
 # Crea el nodo control and pass the network topology
 ps = Control(G, debug=True, tab=True)  # habilitar la depuración para una salida simple
@@ -296,19 +326,53 @@ ps = Control(G, debug=True, tab=True)  # habilitar la depuración para una salid
 
 # Crea el generador de paquetes
 # LightpathRequestGenerator(self, env, id, avegLightpathDuration, numberNodes=5, load=0, flow_id=0):
-pg1 = LigthPathGenerator(1, duration, load=0.5)
-pg2 = LigthPathGenerator(2, duration, load=0.5)
-pg3 = LigthPathGenerator(3, duration, load=0.5)
-pg4 = LigthPathGenerator(4, duration, load=0.5)
-pg5 = LigthPathGenerator(5, duration, load=0.5)
+pg0 = LigthPathGenerator(0, DURATION,load = LOAD)
+pg1 = LigthPathGenerator(1, DURATION,load = LOAD)
+pg2 = LigthPathGenerator(2, DURATION,load = LOAD)
+pg3 = LigthPathGenerator(3, DURATION,load = LOAD)
+pg4 = LigthPathGenerator(4, DURATION,load = LOAD)
+pg5 = LigthPathGenerator(5, DURATION,load = LOAD)
+pg6 = LigthPathGenerator(6, DURATION,load = LOAD)
+pg7 = LigthPathGenerator(7, DURATION,load = LOAD)
+pg8 = LigthPathGenerator(8, DURATION,load = LOAD)
+pg9 = LigthPathGenerator(9, DURATION,load = LOAD)
+pg10 = LigthPathGenerator(10, DURATION,load = LOAD)
+pg11 = LigthPathGenerator(11, DURATION,load = LOAD)
+pg12 = LigthPathGenerator(12, DURATION,load = LOAD)
+pg13 = LigthPathGenerator(13, DURATION,load = LOAD)
 
 # # Conectar los generadores de paquetes y el sink
+pg0.out = ps
 pg1.out = ps
 pg2.out = ps
 pg3.out = ps
 pg4.out = ps
 pg5.out = ps
+pg6.out = ps
+pg7.out = ps
+pg8.out = ps
+pg9.out = ps
+pg10.out = ps
+pg11.out = ps
+pg12.out = ps
+pg13.out = ps
 
 env.run()  # Ejecutarlo
 
-print(TASA_BLOQ)
+# print(TASA_BLOQ)
+# TASA_BLOQ.remove(0)
+# TASA_BLOQ.remove(-1)
+
+# print(len(TASA_BLOQ))
+TASA_BLOQ = TASA_BLOQ[NUM_ELIM:-NUM_ELIM:1]
+# print(TASA_BLOQ)
+
+count = TASA_BLOQ.count(1)          # numero de conexiones bloqueadas
+nobs = len(TASA_BLOQ)               # numero de conexiones que se han intentado establecer
+
+ic = proportion_confint(count, nobs, alpha=0.05, method='normal')
+    
+average = sum(TASA_BLOQ)/len(TASA_BLOQ)
+
+print(ic)
+print(average)
