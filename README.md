@@ -1,7 +1,75 @@
-# Desarrollo y testeo de un simulador de redes ópticas elásticas en Python 
+# Elastic Optical Network Simulator
 
-<p>
-La tecnología tradicional de multiplexación por división de longitud de onda densa (DWDM) ya no es suficiente para satisfacer el amplio crecimiento de la demanda de ancho de banda (bandwidth) de manera eficiente y eficaz en el entorno de la red fija. Por tanto, se necesita una tecnología que supere esos problemas de manera eficaz con una utilización eficiente de los recursos espectrales. Para resolver este problema, surge el paradigma de la red óptica elástica (EON). EON utiliza una tecnología de red flexible que elimina las limitaciones de la tecnología DWDM de red fija y aumenta la capacidad de los canales para satisfacer la demanda actual de ancho de banda (bandwidth) con una utilización adecuada del espectro óptico. 
+## Overview
 
-Discutimos la simulación de eventos discretos en Python, utilizando la biblioteca SimPy y presentamos los métodos y características de esta biblioteca. También presentamos la simulación de una cola M/M/1, calculando el tiempo medio de espera en la cola, así como el intervalo de confianza del 95%. Finalmente, demostramos el objetivo principal de este TFG, que consiste en la creación de un simulador de redes ópticas elásticas, utilizando para ello, además de SimPy, librerías como Networkx para la creación de grafos que representen los nodos de la red y aristas que representen las fibras y algoritmos de asignación, como first fit y best gap.
-</p>
+This project focuses on the development and testing of an Elastic Optical Network (EON) simulator using Python. The simulator incorporates key features such as dynamic lightpath requests, spectrum allocation algorithms (First Fit and Best Gap), and network topology management. The primary goal is to evaluate the efficiency and performance of EONs under various traffic conditions and network topologies.
+
+## Features
+
+- **Network Topology Management**: Uses the NetworkX library to create and manipulate graph representations of network topologies.
+- **Dynamic Lightpath Requests**: Generates and processes lightpath requests based on exponential distributions for arrival times and durations.
+- **Spectrum Allocation Algorithms**: Implements First Fit and Best Gap algorithms to allocate spectrum slots efficiently.
+- **Simulation of NSFNET Topology**: Provides simulations based on the NSFNET topology to analyze network performance under realistic conditions.
+- **Blocking Probability Calculation**: Evaluates the blocking probability of lightpath requests to measure network efficiency.
+- **Resource Management**: Manages transmitters, receivers, and spectrum slots dynamically during simulations.
+
+## Installation
+
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/simmonsmoreno/elastic-optical-network.git
+   ```
+2. Navigate to the project directory:
+   ```sh
+   cd elastic-optical-network
+   ```
+3. Install the required dependencies:
+   ```sh
+   pip install -r requirements.txt
+   ```
+
+## Usage
+
+1. Run the simulator script:
+   ```sh
+   python main.py
+   ```
+2. The script will generate lightpath requests, allocate spectrum using the specified algorithm, and output the simulation results, including the blocking probability and resource utilization.
+
+## Project Structure
+
+- `main.py`: Main script to run the simulation.
+- `network.py`: Contains functions for creating and managing network topologies.
+- `simulation.py`: Implements the simulation logic, including lightpath request generation and spectrum allocation.
+- `algorithms.py`: Implements the First Fit and Best Gap spectrum allocation algorithms.
+- `resources.py`: Manages network resources such as transmitters, receivers, and spectrum slots.
+- `results/`: Directory to store simulation results.
+
+## Spectrum Allocation Algorithms
+
+### First Fit
+
+The First Fit algorithm searches for the first available sequence of spectrum slots that can accommodate the requested lightpath. It is fast but may lead to spectrum fragmentation.
+
+### Best Gap
+
+The Best Gap algorithm searches for the smallest available sequence of spectrum slots that can accommodate the requested lightpath. It is more efficient in terms of spectrum utilization but is computationally intensive.
+
+## Results and Analysis
+
+The simulator outputs key metrics such as blocking probability and resource utilization. These metrics help in evaluating the performance and efficiency of the EON under different traffic conditions and network topologies.
+
+## Conclusion
+
+This project demonstrates the potential of Elastic Optical Networks in improving spectrum utilization and reducing blocking probability. The implemented simulator provides a valuable tool for studying EONs and testing various spectrum allocation algorithms.
+
+## Future Work
+
+- Implement additional spectrum allocation algorithms.
+- Incorporate energy efficiency metrics.
+- Extend the simulator to support larger and more complex network topologies.
+- Develop a graphical user interface (GUI) for easier configuration and visualization of simulations.
+
+## Acknowledgements
+
+This project was developed as part of the final year coursework for the Bachelor's degree in Computer Engineering at the University of Cape Verde. Special thanks to the professors and staff at the University of Valladolid for their guidance and support during the mobility period.
