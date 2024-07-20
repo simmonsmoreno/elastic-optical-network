@@ -38,12 +38,29 @@ This project focuses on the development and testing of an Elastic Optical Networ
 
 ## Project Structure
 
-- `main.py`: Main script to run the simulation.
-- `network.py`: Contains functions for creating and managing network topologies.
-- `simulation.py`: Implements the simulation logic, including lightpath request generation and spectrum allocation.
-- `algorithms.py`: Implements the First Fit and Best Gap spectrum allocation algorithms.
-- `resources.py`: Manages network resources such as transmitters, receivers, and spectrum slots.
-- `results/`: Directory to store simulation results.
+eon-basic-version/
+  - elastic-optical-network.py
+eon-red-14-nodos-version/
+  - elastic-optical-network.py
+eon-red-5-nodos-version/
+  - Components.py
+  - example.py
+README.md
+checkSlots.py
+test.py
+
+### Descriptions:
+
+eon-basic-version/: Contains the basic version of the EON simulator.
+elastic-optical-network.py: Main script for the basic EON simulation.
+eon-red-14-nodos-version/: Contains the version of the EON simulator for a network with 14 nodes.
+elastic-optical-network.py: Main script for the 14-node EON simulation.
+eon-red-5-nodos-version/: Contains the version of the EON simulator for a network with 5 nodes.
+Components.py: Defines various components used in the simulation.
+example.py: Example script demonstrating the use of the components.
+README.md: Project documentation.
+checkSlots.py: Contains functions for slot checking algorithms (First Fit and Best Gap).
+test.py: Script for testing and visualizing paths in a graph.
 
 ## Spectrum Allocation Algorithms
 
