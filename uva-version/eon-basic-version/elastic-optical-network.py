@@ -1,5 +1,3 @@
-from matplotlib import pyplot as plt
-from datetime import datetime
 from tabulate import tabulate
 import numpy as np
 import networkx
