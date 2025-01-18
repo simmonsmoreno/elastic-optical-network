@@ -1,28 +1,42 @@
 """
-    Ejemplo simple de GeneradorPaquete y PacketSink del módulo Components. 
-    Crea dos generadores de paquetes de velocidad exponcencial y los conecta a un sink.
+Simple example of PacketGenerator and PacketSink from the Components module.
+Create two exponential rate packet generators and connect them to a sink.
 """
 import simpy
 from random import expovariate
 from components.light_path_generator import LightPathGenerator
 from components.packet_sink import PacketSink
 
-def distDuration():  # Distribución de llegada exponencial para los generadores
-    return expovariate(1/6) # La duración del lightpath se calcula como una variable aleatoria de tipo exponencial con media
+def distDuration():
+    """Exponential arrival distribution for generators."""
+    return expovariate(1/6)  # The duration of the lightpath is calculated as a random variable of exponential type with mean 6
 
-def distSize():
-    return expovariate(0.01)
+def run_simulation(duration):
+    """Run the simulation with the given duration."""
+    env = simpy.Environment()  # Create the SimPy environment
 
-env = simpy.Environment()  # Crea el entorno SimPy
+    # Create the packet generator and the sink
+    ps = PacketSink(env, debug=True)  # Enable debugging for simple output
+    pg1 = LightPathGenerator(env, 1, duration, load=0.5)
 
-# Crea el generador de paquetes e el sink
-ps = PacketSink(env, debug=True)  # habilitar la depuración para una salida simple
+    # Connect the packet generator to the sink
+    pg1.out = ps
 
-duration = float(input('Duration >> '))
+    try:
+        env.run()  # Run the simulation
+    except Exception as e:
+        print(f"An error occurred during the simulation: {e}")
 
-pg1 = LightPathGenerator(env, 1, duration, load=0.5)
+def main():
+    """Main function to run the simulation."""
+    while True:
+        try:
+            duration = float(input('Duration >> '))
+            break
+        except ValueError:
+            print("Invalid input. Please enter a valid number.")
 
-# Conectar los generadores de paquetes y el sink
-pg1.out = ps
+    run_simulation(duration)
 
-env.run()  # Ejecutarlo
+if __name__ == "__main__":
+    main()
