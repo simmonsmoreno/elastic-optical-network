@@ -7,6 +7,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.live import Live
 from rich.panel import Panel
+from rich.tree import Tree
 
 TASA_BLOQ = []
 
@@ -15,16 +16,24 @@ console = Console()
 def create_network():
     """Cria o grafo da rede com 5 nós e arestas bidirecionais."""
     G = nx.DiGraph()
-    console.print("Criação do grafo com 5 nós e arestas bidirecionais.", style="bold green")
+    console.print("[bold green]Criação do grafo com 5 nós e arestas bidirecionais:[/bold green]")
     G.add_nodes_from([1, 2, 3, 4, 5])
     G.add_edges_from([(1, 2), (2, 1), (1, 4), (4, 1), (2, 3), (3, 2), (2, 5), (5, 2), (3, 5), (5, 3), (4, 5), (5, 4)])
-    console.print(f"Arestas do grafo: {G.edges}", style="bold green")
+    
+    # Desenho do grafo
+    tree = Tree("Rede Óptica")
+    for node in G.nodes:
+        node_branch = tree.add(f"Nó {node}")
+        for neighbor in G.neighbors(node):
+            node_branch.add(f"Aresta {node} -> {neighbor}")
+    console.print(tree)
+    
     return G
 
 def setup_simulation(env, G, duration):
     """Configura a simulação com geradores de lightpaths e controlador."""
     ps = Control(env, G, debug=True, tab=False)  # Habilitar a depuração para uma saída simples
-    console.print("Controlador criado e inicializado.", style="bold green")
+    console.print("[bold green]Controlador criado e inicializado.[/bold green]")
 
     # Criar os geradores de lightpaths
     generators = [Generator(env, i, duration, load=0.5, numberNodes=5) for i in range(1, 6)]
@@ -33,7 +42,7 @@ def setup_simulation(env, G, duration):
     for pg in generators:
         pg.out = ps
 
-    console.print("Geradores de lightpaths criados e conectados ao controlador.", style="bold green")
+    console.print("[bold green]Geradores de lightpaths criados e conectados ao controlador.[/bold green]")
     return ps, generators
 
 def real_time_step(env, start_time):
@@ -47,26 +56,30 @@ def real_time_step(env, start_time):
 
 def collect_statistics(control):
     """Coleta e exibe estatísticas da simulação."""
-    table = Table(title="Estatísticas dos Pacotes")
-    table.add_column("Pacote ID", justify="right", style="cyan", no_wrap=True)
-    table.add_column("Origem", justify="right", style="magenta")
-    table.add_column("Destino", justify="right", style="green")
-    table.add_column("Slots Usados", justify="right", style="blue")
-    table.add_column("Tempo de Envio", justify="right", style="red")
-    table.add_column("Duração", justify="right", style="yellow")
 
-    for pkt in control.pkt_sent:
-        table.add_row(
-            str(pkt.id),
-            str(pkt.src),
-            str(pkt.dst),
-            str(pkt.nslots),
-            f"{pkt.time:.2f}",
-            f"{pkt.duration:.2f}"
-        )
+    if not control.pkt_sent:
+        console.print("[bold red]Nenhum pacote foi enviado durante a simulação.[/bold red]")
+    else:
+        table = Table(title="Estatísticas dos Pacotes")
+        table.add_column("Pacote ID", justify="right", style="cyan", no_wrap=True)
+        table.add_column("Origem", justify="right", style="magenta")
+        table.add_column("Destino", justify="right", style="green")
+        table.add_column("Slots Usados", justify="right", style="blue")
+        table.add_column("Tempo de Envio", justify="right", style="red")
+        table.add_column("Duração", justify="right", style="yellow")
 
-    console.print(table)
-    console.print("Coleta de estatísticas concluída.", style="bold green")
+        for pkt in control.pkt_sent:
+            table.add_row(
+                str(pkt.id),
+                str(pkt.src),
+                str(pkt.dst),
+                str(pkt.nslots),
+                f"{pkt.time:.2f}",
+                f"{pkt.duration:.2f}"
+            )
+
+        console.print(table)
+        console.print("[bold green]Coleta de estatísticas concluída.[/bold green]")
 
 def main():
     """Função principal para configurar e executar a simulação."""
@@ -75,7 +88,7 @@ def main():
 
     # Criar o ambiente SimPy
     env = simpy.Environment()
-    console.print("Ambiente de simulação SimPy criado.", style="bold green")
+    console.print("[bold green]Ambiente de simulação SimPy criado.[/bold green]")
 
     # Definir a duração da simulação
     try:
@@ -99,7 +112,7 @@ def main():
             live.update(clock_panel)
             env.step()
 
-    console.print("Simulação concluída.", style="bold green")
+    console.print("[bold green]Simulação concluída.[/bold green]")
 
     # Coletar e exibir estatísticas
     collect_statistics(ps)
