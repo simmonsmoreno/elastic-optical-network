@@ -45,9 +45,27 @@ def real_time_step(env, start_time):
         if elapsed_real_time < elapsed_sim_time:
             time.sleep(elapsed_sim_time - elapsed_real_time)
 
-def collect_statistics():
+def collect_statistics(control):
     """Coleta e exibe estatísticas da simulação."""
-    # Aqui você pode adicionar código para coletar e exibir estatísticas da simulação
+    table = Table(title="Estatísticas dos Pacotes")
+    table.add_column("Pacote ID", justify="right", style="cyan", no_wrap=True)
+    table.add_column("Origem", justify="right", style="magenta")
+    table.add_column("Destino", justify="right", style="green")
+    table.add_column("Slots Usados", justify="right", style="blue")
+    table.add_column("Tempo de Envio", justify="right", style="red")
+    table.add_column("Duração", justify="right", style="yellow")
+
+    for pkt in control.pkt_sent:
+        table.add_row(
+            str(pkt.id),
+            str(pkt.src),
+            str(pkt.dst),
+            str(pkt.nslots),
+            f"{pkt.time:.2f}",
+            f"{pkt.duration:.2f}"
+        )
+
+    console.print(table)
     console.print("Coleta de estatísticas concluída.", style="bold green")
 
 def main():
@@ -84,7 +102,7 @@ def main():
     console.print("Simulação concluída.", style="bold green")
 
     # Coletar e exibir estatísticas
-    collect_statistics()
+    collect_statistics(ps)
 
 if __name__ == "__main__":
     main()
