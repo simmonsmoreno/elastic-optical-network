@@ -1,12 +1,19 @@
 import simpy
+from typing import List, Optional, Callable
+import time
 
-class PacketSink(object):
+class Packet:
+    def __init__(self, time: float, size: int):
+        self.time = time
+        self.size = size
+
+class PacketSink:
     """ 
     Recebe os pacotes e coleta informações sobre os atrasos na lista de esperas. 
     Podemos usar essa lista para ver as estatísticas de atraso.
     """
     
-    def __init__(self, env, rec_arrivals=False, absolute_arrivals=False, rec_waits=True, debug=False, selector=None):
+    def __init__(self, env: simpy.Environment, rec_arrivals: bool = False, absolute_arrivals: bool = False, rec_waits: bool = True, debug: bool = False, selector: Optional[Callable[[Packet], bool]] = None):
         """
         Inicializa a instância de PacketSink com os parâmetros fornecidos.
 
@@ -23,51 +30,46 @@ class PacketSink(object):
         self.rec_waits = rec_waits
         self.rec_arrivals = rec_arrivals
         self.absolute_arrivals = absolute_arrivals
-        self.waits = []
-        self.arrivals = []
+        self.waits: List[float] = []
+        self.arrivals: List[float] = []
         self.debug = debug
         self.packets_rec = 0
         self.bytes_rec = 0
         self.selector = selector
         self.last_arrival = 0.0
+        self.start_time = time.time()
 
-    def put(self, pkt):
+    def put(self, pkt: Packet) -> simpy.events.Event:
         """
         Recebe um pacote e coleta estatísticas conforme necessário.
 
         Args:
             pkt: O pacote a ser recebido.
         """
-        # Verifica se o seletor está definido e se o pacote passa pelo seletor (ou se não há seletor)
-        if (not self.selector or self.selector(pkt)) and pkt :
+        if (not self.selector or self.selector(pkt)) and pkt:
+            now = self.env.now
 
-            # Obtém o tempo atual do ambiente de simulação
-            now = self.env.now  
+            # Sincronizar com o tempo real
+            elapsed_sim_time = now
+            elapsed_real_time = time.time() - self.start_time
+            if elapsed_real_time < elapsed_sim_time:
+                time.sleep(elapsed_sim_time - elapsed_real_time)
 
-            # Se a gravação de tempos de espera está ativada, adiciona o tempo de espera do pacote à lista
             if self.rec_waits:
                 self.waits.append(now - pkt.time)
-                
-            # Se a gravação de tempos de chegada está ativada
-            if self.rec_arrivals:
 
-                # Se as chegadas absolutas estão ativadas, registra o tempo atual
+            if self.rec_arrivals:
                 if self.absolute_arrivals:
                     self.arrivals.append(now)
-
-                # Caso contrário, registra o tempo desde a última chegada
                 else:
                     self.arrivals.append(now - self.last_arrival)
+                self.last_arrival = now
 
-                # Atualiza o tempo da última chegada
-                self.last_arrival = now  
+            self.packets_rec += 1
+            if hasattr(pkt, 'size'):
+                self.bytes_rec += pkt.size
 
-            # Incrementa o contador de pacotes recebidos    
-            self.packets_rec += 1  
+            if self.debug:
+                print(f"[{now:.2f}s] Pacote recebido: {pkt}")
 
-            # Incrementa o contador de bytes recebidos com o tamanho do pacote
-            # self.bytes_rec += pkt.size
-
-            # Se o modo de depuração está ativado, imprime o pacote
-            if self.debug:  
-                print(pkt)
+        return self.store.put(pkt)

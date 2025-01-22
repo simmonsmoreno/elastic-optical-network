@@ -1,28 +1,37 @@
 """
-    Ejemplo simple de GeneradorPaquete y PacketSink del módulo Components. 
-    Crea dos generadores de paquetes de velocidad exponcencial y los conecta a un sink.
+    Simulação de eventos discretos com simpy.
+    Cria um gerador de pacotes (LightPathGenerator) e um receptor (PacketSink).
+    O gerador envia pacotes com distribuição exponencial de tempo de chegada.
+    O receptor registra e coleta estatísticas dos pacotes recebidos.
+    Executa por um tempo especificado e imprime as estatísticas.
 """
+
 import simpy
 from random import expovariate
 from components.light_path_generator import LightPathGenerator
 from components.packet_sink import PacketSink
 
-def distDuration():  # Distribución de llegada exponencial para los generadores
-    return expovariate(1/6) # La duración del lightpath se calcula como una variable aleatoria de tipo exponencial con media
+def distDuration():
+    return expovariate(1/6)  # Duração do lightpath com média de 6 unidades de tempo
 
 def distSize():
-    return expovariate(0.01)
+    return expovariate(0.01)  # Tamanho do pacote com média de 100 unidades
 
-env = simpy.Environment()  # Crea el entorno SimPy
+def main(duration=10):
+    env = simpy.Environment()
 
-# Crea el generador de paquetes e el sink
-ps = PacketSink(env, debug=True)  # habilitar la depuración para una salida simple
+    # Cria um receptor de pacotes
+    ps = PacketSink(env, debug=True)        
 
-duration = float(input('Duration >> '))
+    # Cria um gerador de pacotes
+    pg1 = LightPathGenerator(env, 1, duration, load=0.5) 
 
-pg1 = LightPathGenerator(env, 1, duration, load=0.5)
+    # Conecta o gerador de pacotes ao receptor de pacotes   
+    pg1.out = ps  
 
-# Conectar los generadores de paquetes y el sink
-pg1.out = ps
+    # Executa a simulação por um tempo especificado      
+    env.run(until=duration) 
 
-env.run()  # Ejecutarlo
+if __name__ == "__main__":
+    duration = float(input('Duration >> '))
+    main(duration)
