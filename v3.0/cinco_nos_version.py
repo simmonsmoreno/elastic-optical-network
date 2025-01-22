@@ -16,7 +16,7 @@ console = Console()
 def create_network():
     """Cria o grafo da rede com 5 nós e arestas bidirecionais."""
     G = nx.DiGraph()
-    console.print("[bold green]Criação do grafo com 5 nós e arestas bidirecionais:[/bold green]")
+    console.print("[bold blue]Criação do grafo com 5 nós e arestas bidirecionais:[/bold blue]")
     G.add_nodes_from([1, 2, 3, 4, 5])
     G.add_edges_from([(1, 2), (2, 1), (1, 4), (4, 1), (2, 3), (3, 2), (2, 5), (5, 2), (3, 5), (5, 3), (4, 5), (5, 4)])
     
@@ -33,7 +33,7 @@ def create_network():
 def setup_simulation(env, G, duration):
     """Configura a simulação com geradores de lightpaths e controlador."""
     ps = Control(env, G, debug=True, tab=False)  # Habilitar a depuração para uma saída simples
-    console.print("[bold green]Controlador criado e inicializado.[/bold green]")
+    console.print("[bold blue]Controlador criado e inicializado.[/bold blue]")
 
     # Criar os geradores de lightpaths
     generators = [Generator(env, i, duration, load=0.5, numberNodes=5) for i in range(1, 6)]
@@ -42,7 +42,7 @@ def setup_simulation(env, G, duration):
     for pg in generators:
         pg.out = ps
 
-    console.print("[bold green]Geradores de lightpaths criados e conectados ao controlador.[/bold green]")
+    console.print("[bold blue]Geradores de lightpaths criados e conectados ao controlador.[/bold blue]")
     return ps, generators
 
 def real_time_step(env, start_time):
@@ -88,7 +88,7 @@ def main():
 
     # Criar o ambiente SimPy
     env = simpy.Environment()
-    console.print("[bold green]Ambiente de simulação SimPy criado.[/bold green]")
+    console.print("[bold blue]Ambiente de simulação SimPy criado.[/bold blue]")
 
     # Definir a duração da simulação
     try:

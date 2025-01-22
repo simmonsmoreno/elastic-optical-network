@@ -45,10 +45,10 @@ class Control(object):
                 if disp:
                     pkt.slot_used = slot_used
                     self.pkt_sent.append(pkt)
-                    print('\033[96m'"nodo{} ==> nodo{}\t\t#slots={}"'\033[0m'.format(pkt.src, pkt.dst, pkt.nslots))
+                    print('\033[97m' + "[{}sec] Pacote Enviado: \t id #{} \t\t Nó {} -> Nó {} \t\t #slots usados = {} \t duracao = {}sec".format(round(pkt.time, 2), pkt.id, pkt.src, pkt.dst, pkt.nslots, round(pkt.duration, 2)) + '\033[0m')
                 else:
-                    print('\033[91m'"{} ==> {} #slots = {}"'\033[91m'.format(pkt.src, pkt.dst, pkt.nslots))
-                    print('\033[91m''Unavailable resources. REQUEST LOST!''\033[91m')
+                    print('\033[91m' + "[{}sec] Pacote Perdido: \t id #{} \t\t Nó {} -> Nó {} \t\t #slots solicitados = {} \t duracao = {}sec".format(round(pkt.time, 2), pkt.id, pkt.src, pkt.dst, pkt.nslots, round(pkt.duration, 2)) + '\033[91m')
+                    print('\033[91m' + '\tRECURSOS NÃO DISPONÍVEIS!' + '\033[91m')
                     self.pkt_lost.append(pkt)
         else:
             self.remove(None)
@@ -73,7 +73,7 @@ class Control(object):
                     self.txrx[p.dst-1][1] += 1
                     for slo in p.slot_used:
                         self.slots[slo[0]][slo[1]] = True
-                    print('\033[93m'"[{}]\t\t#{}\tFINISHED ::: #slots={}\t\tnodo{} ==> nodo{}"'\033[0m'.format(round(p.time + p.duration, 2), p.id, p.nslots, p.src, p.dst))
+                    print('\033[93m' + "[{}sec] TEMPO EXPIRADO \t id #{} \t\t Nó {} -> Nó {} \t\t #slots libertados = {}".format(round(p.time + p.duration, 2), p.id, p.src, p.dst, p.nslots) + '\033[0m')
         else:
             self.pkt_sent.clear()
             self.txrx.fill(10)
