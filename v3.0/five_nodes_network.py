@@ -22,17 +22,19 @@ def create_network():
     
     # Desenho do grafo
     tree = Tree("Rede Óptica")
+    edge_id = 1
     for node in G.nodes:
         node_branch = tree.add(f"Nó {node}")
         for neighbor in G.neighbors(node):
-            node_branch.add(f"Aresta {node} -> {neighbor}")
+            node_branch.add(f"Aresta {edge_id}: {node} -> {neighbor}")
+            edge_id += 1
     console.print(tree)
     
     return G
 
-def setup_simulation(env, G, duration):
+def setup_simulation(env, G, duration, show_resources):
     """Configura a simulação com geradores de lightpaths e controlador."""
-    ps = Control(env, G, debug=True, tab=True)  # Habilitar a depuração para uma saída simples
+    ps = Control(env, G, debug=True, tab=show_resources)  # Habilitar a depuração para uma saída simples
     console.print("[bold blue]Controlador criado e inicializado.[/bold blue]")
 
     # Criar os geradores de lightpaths
@@ -92,13 +94,15 @@ def main():
 
     # Definir a duração da simulação
     try:
-        duration = float(input('Duration >> '))
+        duration = float(input('Duração (s) >> '))
+        show_resources_input = input('Mostrar recursos (1 para True, 0 para False) >> ')
+        show_resources = show_resources_input == '1'    
     except ValueError:
         console.print("[bold red]Erro: Por favor, insira um valor válido para a duração![/bold red]")
         return
 
     # Configurar a simulação
-    ps, generators = setup_simulation(env, G, duration)
+    ps, generators = setup_simulation(env, G, duration, show_resources)
 
     # Sincronização com tempo real
     start_time = time.time()

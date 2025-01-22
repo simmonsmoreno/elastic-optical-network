@@ -41,12 +41,12 @@ class Control(object):
                 now = self.env.now
                 self.remove(now)
 
-                disp, slot_used = self.allocate(pkt.src, pkt.dst, pkt.nslots)
+                disp, slot_used, path = self.allocate(pkt.src, pkt.dst, pkt.nslots)
 
                 if disp:
                     pkt.slot_used = slot_used
                     self.pkt_sent.append(pkt)
-                    print('\033[97m' + "[{}sec] Pacote Enviado: \t id #{} \t\t Nó {} -> Nó {} \t\t #slots usados = {} \t duracao = {}sec".format(round(pkt.time, 2), pkt.id, pkt.src, pkt.dst, pkt.nslots, round(pkt.duration, 2)) + '\033[0m')
+                    print('\033[97m' + "[{}sec] Pacote Enviado: \t id #{} \t\t Nó {} -> Nó {} \t\t #slots usados = {} \t duracao = {}sec \t caminho = {}".format(round(pkt.time, 2), pkt.id, pkt.src, pkt.dst, pkt.nslots, round(pkt.duration, 2), path) + '\033[0m')
                 else:
                     print('\033[91m' + "[{}sec] Pacote Perdido: \t id #{} \t\t Nó {} -> Nó {} \t\t #slots solicitados = {} \t duracao = {}sec".format(round(pkt.time, 2), pkt.id, pkt.src, pkt.dst, pkt.nslots, round(pkt.duration, 2)) + '\033[91m')
                     print('\033[91m' + '\tRECURSOS NÃO DISPONÍVEIS!' + '\033[91m')
@@ -92,6 +92,7 @@ class Control(object):
         Returns:
             bool: Indica se a alocação foi bem-sucedida.
             list: Lista de slots usados.
+            list: Caminho utilizado.
         """
         edges = list(self.network.edges())
         paths = nx.shortest_path(self.network, src, dst)
@@ -102,10 +103,10 @@ class Control(object):
             channels = self.checkSlotsBestGap(num_slots, channels)
 
         if not channels:
-            return False, []
+            return False, [], paths
 
         disp, slot_used = self.allocate_slots(src, dst, num_slots, index, channels)
-        return disp, slot_used
+        return disp, slot_used, paths
     
     def get_edge_indices(self, paths, edges):
         """
@@ -143,7 +144,7 @@ class Control(object):
         else:
             channels = [i for i in range(10) if self.slots[index][0][i]]
         return channels
-    
+
     def allocate_slots(self, src, dst, num_slots, index, channels):
         """
         Aloca slots para um pacote.
