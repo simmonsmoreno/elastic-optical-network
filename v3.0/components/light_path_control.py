@@ -1,8 +1,8 @@
 import numpy as np
 import networkx as nx
-from tabulate import tabulate
 from rich.console import Console
 from rich.table import Table
+from rich.layout import Layout
 
 console = Console()
 
@@ -189,9 +189,8 @@ class Control(object):
             slots (ndarray): Matriz de slots.
         """
         if self.debug:
+            layout = Layout()
 
-            console.print("\n")
-            
             # Tabela de tx/rx
             table_txrx = Table(title="Recursos dos Nós (Tx/Rx)", show_header=True, header_style="bold magenta")
             table_txrx.add_column("Nó", justify="right")
@@ -210,9 +209,13 @@ class Control(object):
             for i, row in enumerate(slots, start=1):
                 table_slots.add_row(str(i), *[str(int(slot)) for slot in row])
 
-            console.print(table_txrx)
-            console.print(table_slots)
-            console.print("\n")
+            # Adiciona as tabelas ao layout
+            layout.split_row(
+                Layout(table_txrx, name="left"),
+                Layout(table_slots, name="right")
+            )
+
+            console.print(layout)
 
     def checkSlotsFirstFit(self, n, l):
         """

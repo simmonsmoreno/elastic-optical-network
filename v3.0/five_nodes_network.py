@@ -94,7 +94,7 @@ def main():
 
     # Definir a duração da simulação
     try:
-        duration = float(input('Duração (s) >> '))
+        duration = float(input('Duração(s) >> '))
         show_resources_input = input('Mostrar recursos (1 para True, 0 para False) >> ')
         show_resources = show_resources_input == '1'    
     except ValueError:
