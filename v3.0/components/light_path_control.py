@@ -1,9 +1,21 @@
 import numpy as np
 import networkx as nx
 from tabulate import tabulate
+from rich.console import Console
+
+console = Console()
 
 class Control(object):
     def __init__(self, env, network, debug=True, tab=True):
+        """
+        Inicializa o controlador de lightpaths.
+        
+        Args:
+            env (simpy.Environment): O ambiente de simulação.
+            network (networkx.Graph): O grafo da rede.
+            debug (bool): Habilita ou desabilita mensagens de depuração.
+            tab (bool): Habilita ou desabilita a tabulação das tabelas.
+        """
         self.env = env
         self.network = network
         self.debug = debug
@@ -17,6 +29,12 @@ class Control(object):
         self.slots.fill(True)
 
     def put(self, pkt):
+        """
+        Processa um pacote, alocando recursos ou registrando a perda do pacote.
+        
+        Args:
+            pkt (Packet): O pacote a ser processado.
+        """
         if pkt is not None:
             if self.debug:
                 now = self.env.now
@@ -39,6 +57,12 @@ class Control(object):
             self.tabulate(self.txrx, self.slots)
 
     def remove(self, now):
+        """
+        Remove pacotes cujo tempo de duração expirou.
+        
+        Args:
+            now (float): O tempo atual da simulação.
+        """
         pkt_sent = self.pkt_sent if now is not None else sorted(self.pkt_sent, key=lambda x: x.time + x.duration)
 
         if now is not None:
@@ -56,28 +80,22 @@ class Control(object):
             self.slots.fill(True)
 
     def allocate(self, src, dst, num_slots):
+        """
+        Aloca recursos para um pacote.
+        
+        Args:
+            src (int): O nó de origem.
+            dst (int): O nó de destino.
+            num_slots (int): O número de slots necessários.
+        
+        Returns:
+            bool: Indica se a alocação foi bem-sucedida.
+            list: Lista de slots usados.
+        """
         edges = list(self.network.edges())
-        paths = []
-        index = []
-        channels = []
-        slot_used = []
-        disp = False
-
         paths = nx.shortest_path(self.network, src, dst)
-
-        for i in range(len(paths) - 1):
-            if (paths[i], paths[i + 1]) in edges:
-                index.append(edges.index((paths[i], paths[i + 1])))
-            else:
-                index.append(edges.index((paths[i + 1], paths[i])))
-
-        if len(paths) > 2:
-            trans_slot = self.slots.T
-            for k in range(trans_slot.shape[0]):
-                if np.all(trans_slot[k] == True):
-                    channels.append(k)
-        else:
-            channels = [i for i in range(10) if self.slots[index][0][i] == True]
+        index = self.get_edge_indices(paths, edges)
+        channels = self.get_available_channels(paths, index)
 
         if num_slots > 1:
             channels = self.checkSlotsBestGap(num_slots, channels)
@@ -85,10 +103,68 @@ class Control(object):
         if not channels:
             return False, []
 
+        disp, slot_used = self.allocate_slots(src, dst, num_slots, index, channels)
+        return disp, slot_used
+    
+    def get_edge_indices(self, paths, edges):
+        """
+        Obtém os índices das arestas no caminho.
+        
+        Args:
+            paths (list): Lista de nós no caminho.
+            edges (list): Lista de arestas na rede.
+        
+        Returns:
+            list: Lista de índices das arestas.
+        """
+        index = []
+        for i in range(len(paths) - 1):
+            if (paths[i], paths[i + 1]) in edges:
+                index.append(edges.index((paths[i], paths[i + 1])))
+            else:
+                index.append(edges.index((paths[i + 1], paths[i])))
+        return index
+    
+    def get_available_channels(self, paths, index):
+        """
+        Obtém os canais disponíveis para alocação.
+        
+        Args:
+            paths (list): Lista de nós no caminho.
+            index (list): Lista de índices das arestas.
+        
+        Returns:
+            list: Lista de canais disponíveis.
+        """
+        if len(paths) > 2:
+            trans_slot = self.slots.T
+            channels = [k for k in range(trans_slot.shape[0]) if np.all(trans_slot[k])]
+        else:
+            channels = [i for i in range(10) if self.slots[index][0][i]]
+        return channels
+    
+    def allocate_slots(self, src, dst, num_slots, index, channels):
+        """
+        Aloca slots para um pacote.
+        
+        Args:
+            src (int): O nó de origem.
+            dst (int): O nó de destino.
+            num_slots (int): O número de slots necessários.
+            index (list): Lista de índices das arestas.
+            channels (list): Lista de canais disponíveis.
+        
+        Returns:
+            bool: Indica se a alocação foi bem-sucedida.
+            list: Lista de slots usados.
+        """
+        slot_used = []
+        disp = False
+
         for i in range(len(index)):
             for k in range(num_slots):
                 for j in channels:
-                    if self.slots[index[i]][j] == True and self.txrx[src-1][0] > 0 and self.txrx[dst-1][1] > 0:
+                    if self.slots[index[i]][j] and self.txrx[src-1][0] > 0 and self.txrx[dst-1][1] > 0:
                         self.slots[index[i]][j] = False
                         slot_used.append([index[i], j])
                         disp = True
@@ -103,6 +179,13 @@ class Control(object):
         return disp, slot_used
 
     def tabulate(self, txrx, slots):
+        """
+        Exibe as tabelas de tx/rx e slots.
+        
+        Args:
+            txrx (ndarray): Matriz de tx/rx.
+            slots (ndarray): Matriz de slots.
+        """
         headers_txrx = ["nodes", "tx", "rx"]
         headers_slots = ["fibers"]
 
@@ -116,6 +199,16 @@ class Control(object):
         print(table_slots)
 
     def checkSlotsFirstFit(self, n, l):
+        """
+        Verifica a primeira combinação de slots disponíveis.
+        
+        Args:
+            n (int): Número de slots necessários.
+            l (list): Lista de slots disponíveis.
+        
+        Returns:
+            list: Lista de slots alocados.
+        """
         l = sorted(l)
         for i in range(len(l)):
             sublist = l[i:n + i]
@@ -127,6 +220,16 @@ class Control(object):
         return []
 
     def checkSlotsBestGap(self, n_slot, lista):
+        """
+        Verifica a melhor combinação de slots disponíveis.
+        
+        Args:
+            n_slot (int): Número de slots necessários.
+            lista (list): Lista de slots disponíveis.
+        
+        Returns:
+            list: Lista de slots alocados.
+        """
         index = []
         sublist = []
         for i in range(len(lista)):
