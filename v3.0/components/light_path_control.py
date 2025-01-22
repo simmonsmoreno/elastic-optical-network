@@ -2,6 +2,7 @@ import numpy as np
 import networkx as nx
 from tabulate import tabulate
 from rich.console import Console
+from rich.table import Table
 
 console = Console()
 
@@ -54,7 +55,7 @@ class Control(object):
             self.remove(None)
         
         if self.tab:
-            self.tabulate(self.txrx, self.slots)
+            self.display_resources(self.txrx, self.slots)
 
     def remove(self, now):
         """
@@ -178,7 +179,7 @@ class Control(object):
 
         return disp, slot_used
 
-    def tabulate(self, txrx, slots):
+    def display_resources(self, txrx, slots):
         """
         Exibe as tabelas de tx/rx e slots.
         
@@ -186,17 +187,31 @@ class Control(object):
             txrx (ndarray): Matriz de tx/rx.
             slots (ndarray): Matriz de slots.
         """
-        headers_txrx = ["nodes", "tx", "rx"]
-        headers_slots = ["fibers"]
+        if self.debug:
 
-        for i in range(10):
-            headers_slots.append("slot " + str((i + 1)))
+            console.print("\n")
+            
+            # Tabela de tx/rx
+            table_txrx = Table(title="Recursos dos Nós (Tx/Rx)", show_header=True, header_style="bold magenta")
+            table_txrx.add_column("Nó", justify="right")
+            table_txrx.add_column("Tx", justify="right")
+            table_txrx.add_column("Rx", justify="right")
 
-        table_txrx = tabulate(txrx, headers_txrx, tablefmt="fancy_grid", showindex=self.network.nodes)
-        table_slots = tabulate(slots, headers_slots, tablefmt="fancy_grid", showindex=self.network.edges)
+            for i, (tx, rx) in enumerate(txrx, start=1):
+                table_txrx.add_row(str(i), str(int(tx)), str(int(rx)))
 
-        print(table_txrx)
-        print(table_slots)
+            # Tabela de slots
+            table_slots = Table(title="Recursos das Fibras (Slots)", show_header=True, header_style="bold magenta")
+            table_slots.add_column("Fibra", justify="right")
+            for i in range(slots.shape[1]):
+                table_slots.add_column(f"Slot {i+1}", justify="right")
+
+            for i, row in enumerate(slots, start=1):
+                table_slots.add_row(str(i), *[str(int(slot)) for slot in row])
+
+            console.print(table_txrx)
+            console.print(table_slots)
+            console.print("\n")
 
     def checkSlotsFirstFit(self, n, l):
         """

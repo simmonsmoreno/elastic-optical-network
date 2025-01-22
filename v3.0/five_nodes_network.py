@@ -32,7 +32,7 @@ def create_network():
 
 def setup_simulation(env, G, duration):
     """Configura a simulação com geradores de lightpaths e controlador."""
-    ps = Control(env, G, debug=True, tab=False)  # Habilitar a depuração para uma saída simples
+    ps = Control(env, G, debug=True, tab=True)  # Habilitar a depuração para uma saída simples
     console.print("[bold blue]Controlador criado e inicializado.[/bold blue]")
 
     # Criar os geradores de lightpaths
