@@ -8,6 +8,7 @@ from rich.table import Table
 from rich.live import Live
 from rich.panel import Panel
 from rich.tree import Tree
+import matplotlib.pyplot as plt
 
 TASA_BLOQ = []
 
@@ -26,19 +27,30 @@ def create_network():
     for node in G.nodes:
         node_branch = tree.add(f"Nó {node}")
         for neighbor in G.neighbors(node):
-            node_branch.add(f"Aresta {edge_id}: {node} -> {neighbor}")
+            node_branch.add(f"Fibra {edge_id}: {node} -> {neighbor}")
             edge_id += 1
     console.print(tree)
+
+    visualize_network(G)
     
     return G
 
-def setup_simulation(env, G, duration, show_resources):
+def visualize_network(G):
+    """Visualiza a topologia da rede óptica."""
+    pos = nx.spring_layout(G)
+    plt.figure()
+    nx.draw(G, pos, with_labels=True, node_color='lightblue', edge_color='gray', node_size=2000, font_size=15, font_weight='bold')
+    plt.title("Topologia da Rede Óptica")
+    plt.show()
+
+def setup_simulation(env, G, duration, show_resources, load):
     """Configura a simulação com geradores de lightpaths e controlador."""
-    ps = Control(env, G, debug=True, tab=show_resources)  # Habilitar a depuração para uma saída simples
+    # Habilitar a depuração para uma saída simples
+    ps = Control(env, G, debug=True, tab=show_resources)  
     console.print("[bold blue]Controlador criado e inicializado.[/bold blue]")
 
     # Criar os geradores de lightpaths
-    generators = [Generator(env, i, duration, load=0.5, numberNodes=5) for i in range(1, 6)]
+    generators = [Generator(env, i, duration, load, numberNodes=5) for i in range(1, 6)]
 
     # Conectar os geradores de lightpaths ao controlador
     for pg in generators:
@@ -83,6 +95,12 @@ def collect_statistics(control):
         console.print(table)
         console.print("[bold green]Coleta de estatísticas concluída.[/bold green]")
 
+def analyze_performance(control):
+    """Analisa o desempenho da simulação."""
+    total_requests = len(control.pkt_sent) + len(control.pkt_lost)
+    blocking_probability = len(control.pkt_lost) / total_requests if total_requests > 0 else 0
+    console.print(f"[bold blue]Taxa de Bloqueio: {blocking_probability:.2f}[/bold blue]")
+
 def main():
     """Função principal para configurar e executar a simulação."""
     # Criar o grafo da rede
@@ -97,12 +115,13 @@ def main():
         duration = float(input('Duração(s) >> '))
         show_resources_input = input('Mostrar recursos (1 para True, 0 para False) >> ')
         show_resources = show_resources_input == '1'    
+        load = float(input('Carga de tráfego (0.0 a 1.0) >> '))
     except ValueError:
         console.print("[bold red]Erro: Por favor, insira um valor válido para a duração![/bold red]")
         return
 
     # Configurar a simulação
-    ps, generators = setup_simulation(env, G, duration, show_resources)
+    ps, generators = setup_simulation(env, G, duration, show_resources, load)
 
     # Sincronização com tempo real
     start_time = time.time()
@@ -120,6 +139,7 @@ def main():
 
     # Coletar e exibir estatísticas
     collect_statistics(ps)
+    analyze_performance(ps)
 
 if __name__ == "__main__":
     main()
