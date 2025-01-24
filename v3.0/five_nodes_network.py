@@ -10,8 +10,6 @@ from rich.panel import Panel
 from rich.tree import Tree
 import matplotlib.pyplot as plt
 
-TASA_BLOQ = []
-
 console = Console()
 
 def create_network():
