@@ -40,28 +40,34 @@ This project involves developing and testing an Elastic Optical Network (EON) si
 ## Project Structure
 
 ```
-unicv-version/
-    basic_version.py
-    cinco_nos_version.py
-    components/
-        light_path_control.py
-        light_path_generator.py
-        light_path_request.py
-        packet_sink.py
-    nsfnet_version.py
-    README.md
-    teste.py
-uva-version/
-    checkSlots.py
-    eon-basic-version/
-        elastic-optical-network.py
-    eon-red-14-nodos-version/
-        elastic-optical-network.py
-    eon-red-5-nodos-version/
-        Components.py
-        example.py
-    README.md
-    test.py
+```
+## Project Structure
+
+### unicv-version/
+- **basic_version.py**: Basic example of packet generator and packet sink.
+- **cinco_nos_version.py**: Simulation with a network of 5 nodes.
+- **components/**: Contains various components used in the simulation.
+    - **light_path_control.py**: Implements the control logic for lightpath allocation.
+    - **light_path_generator.py**: Generates lightpath requests.
+    - **light_path_request.py**: Defines the LightPathRequest class.
+    - **packet_sink.py**: Receives packets and collects statistics.
+- **nsfnet_version.py**: Simulation based on the NSFNET topology.
+- **README.md**: Documentation for the unicv-version.
+- **teste.py**: Provides a GUI for the simulator using Tkinter.
+
+### uva-version/
+- **checkSlots.py**: Script to check available slots.
+- **eon-basic-version/**: Basic version of the EON simulator.
+    - **elastic-optical-network.py**: Main script for the basic version.
+- **eon-red-14-nodos-version/**: Version with a 14-node network.
+    - **elastic-optical-network.py**: Main script for the 14-node version.
+- **eon-red-5-nodos-version/**: Version with a 5-node network.
+    - **Components.py**: Contains various components used in the simulation.
+    - **example.py**: Example script for the 5-node version.
+- **README.md**: Documentation for the uva-version.
+- **test.py**: Test script for the uva-version.
+```
+```
 ```
 
 ### Descriptions:
