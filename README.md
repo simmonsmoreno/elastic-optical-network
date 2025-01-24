@@ -2,16 +2,17 @@
 
 ## Overview
 
-This project focuses on the development and testing of an Elastic Optical Network (EON) simulator using Python. The simulator incorporates key features such as dynamic lightpath requests, spectrum allocation algorithms (First Fit and Best Gap), and network topology management. The primary goal is to evaluate the efficiency and performance of EONs under various traffic conditions and network topologies.
+This project involves developing and testing an Elastic Optical Network (EON) simulator using Python. The simulator includes features such as dynamic lightpath requests, spectrum allocation algorithms (First Fit and Best Gap), and network topology management. The primary goal is to evaluate the efficiency and performance of EONs under various traffic conditions and network topologies.
 
 ## Features
 
-- **Network Topology Management**: Uses the NetworkX library to create and manipulate graph representations of network topologies.
+- **Network Topology Management**: Utilizes the NetworkX library to create and manipulate graph representations of network topologies.
 - **Dynamic Lightpath Requests**: Generates and processes lightpath requests based on exponential distributions for arrival times and durations.
 - **Spectrum Allocation Algorithms**: Implements First Fit and Best Gap algorithms to allocate spectrum slots efficiently.
 - **Simulation of NSFNET Topology**: Provides simulations based on the NSFNET topology to analyze network performance under realistic conditions.
 - **Blocking Probability Calculation**: Evaluates the blocking probability of lightpath requests to measure network efficiency.
-- **Resource Management**: Manages transmitters, receivers, and spectrum slots dynamically during simulations.
+- **Resource Management**: Dynamically manages transmitters, receivers, and spectrum slots during simulations.
+- **Graphical User Interface (GUI)**: Offers a GUI for easier configuration and visualization of simulations using Tkinter.
 
 ## Installation
 
@@ -38,29 +39,43 @@ This project focuses on the development and testing of an Elastic Optical Networ
 
 ## Project Structure
 
-eon-basic-version/
-  - elastic-optical-network.py
-eon-red-14-nodos-version/
-  - elastic-optical-network.py
-eon-red-5-nodos-version/
-  - Components.py
-  - example.py
-README.md
-checkSlots.py
-test.py
+```
+unicv-version/
+    basic_version.py
+    cinco_nos_version.py
+    components/
+        light_path_control.py
+        light_path_generator.py
+        light_path_request.py
+        packet_sink.py
+    nsfnet_version.py
+    README.md
+    teste.py
+uva-version/
+    checkSlots.py
+    eon-basic-version/
+        elastic-optical-network.py
+    eon-red-14-nodos-version/
+        elastic-optical-network.py
+    eon-red-5-nodos-version/
+        Components.py
+        example.py
+    README.md
+    test.py
+```
 
 ### Descriptions:
 
-eon-basic-version/: Contains the basic version of the EON simulator.
-elastic-optical-network.py: Main script for the basic EON simulation.
-eon-red-14-nodos-version/: Contains the version of the EON simulator for a network with 14 nodes.
-elastic-optical-network.py: Main script for the 14-node EON simulation.
-eon-red-5-nodos-version/: Contains the version of the EON simulator for a network with 5 nodes.
-Components.py: Defines various components used in the simulation.
-example.py: Example script demonstrating the use of the components.
-README.md: Project documentation.
-checkSlots.py: Contains functions for slot checking algorithms (First Fit and Best Gap).
-test.py: Script for testing and visualizing paths in a graph.
+- **unicv-version/**: Contains the main versions of the EON simulator.
+  - **basic_version.py**: Basic example of packet generator and packet sink.
+  - **cinco_nos_version.py**: Simulation with a network of 5 nodes.
+  - **components/**: Contains various components used in the simulation.
+    - **light_path_control.py**: Implements the control logic for lightpath allocation.
+    - **light_path_generator.py**: Generates lightpath requests.
+    - **light_path_request.py**: Defines the LightPathRequest class.
+    - **packet_sink.py**: Receives packets and collects statistics.
+  - **nsfnet_version.py**: Simulation based on the NSFNET topology.
+  - **teste.py**: Provides a GUI for the simulator using Tkinter.
 
 ## Spectrum Allocation Algorithms
 
