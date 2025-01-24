@@ -17,7 +17,12 @@ def create_network():
     G = nx.DiGraph()
     console.print("[bold blue]Criação do grafo com 5 nós e arestas bidirecionais:[/bold blue]")
     G.add_nodes_from([1, 2, 3, 4, 5])
-    G.add_edges_from([(1, 2), (2, 1), (1, 4), (4, 1), (2, 3), (3, 2), (2, 5), (5, 2), (3, 5), (5, 3), (4, 5), (5, 4)])
+    edges = [
+        (1, 2), (2, 1), (1, 4), (4, 1),
+        (2, 3), (3, 2), (2, 5), (5, 2),
+        (3, 5), (5, 3), (4, 5), (5, 4)
+    ]
+    G.add_edges_from(edges)
     
     # Desenho do grafo
     tree = Tree("Rede Óptica")
