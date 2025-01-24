@@ -46,9 +46,9 @@ def visualize_network(G):
     plt.title("Topologia da Rede Óptica")
     plt.show()
 
-def setup_simulation(env, G, duration, show_resources, load):
+def setup_simulation(env, G, duration, show_resources, load, allocation_algorithm):
     """Configura a simulação com geradores de lightpaths e controlador."""
-    ps = Control(env, G, debug=True, tab=show_resources)  # Habilitar a depuração para uma saída simples
+    ps = Control(env, G, debug=True, tab=show_resources, allocation_algorithm=allocation_algorithm)  # Habilitar a depuração para uma saída simples
     console.print("[bold blue]Controlador criado e inicializado.[/bold blue]")
 
     # Criar os geradores de lightpaths
@@ -117,12 +117,20 @@ def main():
         show_resources_input = input('Mostrar recursos (1 para True, 0 para False) >> ')
         show_resources = show_resources_input == '1'    
         load = float(input('Carga de tráfego (0.0 a 1.0) >> '))
+        allocation_algorithm_input = input('Algoritmo de alocação (0 para first_fit, 1 para best_gap) >> ')
+        if allocation_algorithm_input == '0':
+            allocation_algorithm = "first_fit"
+        elif allocation_algorithm_input == '1':
+            allocation_algorithm = "best_gap"
+        else:
+            console.print("[bold red]Erro: Inserido um valor inválido! first_fit assumido como algoritmo padrão[/bold red]")
+            allocation_algorithm = "first_fit"
     except ValueError:
         console.print("[bold red]Erro: Por favor, insira um valor válido para a duração![/bold red]")
         return
 
     # Configurar a simulação
-    ps, generators = setup_simulation(env, G, duration, show_resources, load)
+    ps, generators = setup_simulation(env, G, duration, show_resources, load, allocation_algorithm)
 
     # Sincronização com tempo real
     start_time = time.time()

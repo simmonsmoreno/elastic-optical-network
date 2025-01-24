@@ -7,7 +7,7 @@ from rich.layout import Layout
 console = Console()
 
 class Control(object):
-    def __init__(self, env, network, debug=True, tab=True):
+    def __init__(self, env, network, debug=True, tab=True, allocation_algorithm="first_fit"):
         """
         Inicializa o controlador de lightpaths.
         
@@ -16,11 +16,13 @@ class Control(object):
             network (networkx.Graph): O grafo da rede.
             debug (bool): Habilita ou desabilita mensagens de depuração.
             tab (bool): Habilita ou desabilita a tabulação das tabelas.
+            allocation_algorithm (str): Algoritmo de alocação de slots ("first_fit" ou "best_gap").
         """
         self.env = env
         self.network = network
         self.debug = debug
         self.tab = tab
+        self.allocation_algorithm = allocation_algorithm
         self.pkt_sent = []
         self.pkt_lost = []
         self.txrx = np.ndarray([network.number_of_nodes(), 2])
@@ -100,7 +102,10 @@ class Control(object):
         channels = self.get_available_channels(paths, index)
 
         if num_slots > 1:
-            channels = self.checkSlotsBestGap(num_slots, channels)
+            if self.allocation_algorithm == "best_gap":
+                channels = self.checkSlotsBestGap(num_slots, channels)
+            else:
+                channels = self.checkSlotsFirstFit(num_slots, channels)
 
         if not channels:
             return False, [], paths
