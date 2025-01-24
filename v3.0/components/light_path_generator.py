@@ -10,7 +10,7 @@ class LightPathGenerator:
     Estabelece a variável membro "out" à entidade que receberá o pacote.
     """
 
-    def __init__(self, env: simpy.Environment, id: int, avegLightpathDuration: float, load: float, numberNodes: int = 5, num_max_pet: int = 10, num_max_slots: int = 3):
+    def __init__(self, env: simpy.Environment, id: int, avegLightpathDuration: float, load: float, numberNodes: int = 5, num_max_pet: int = 10, num_max_slots: int = 3, node_range: Optional[range] = None):
         """
         Inicializa o gerador de lightpaths.
 
@@ -22,6 +22,7 @@ class LightPathGenerator:
             numberNodes: Número de nós na rede.
             num_max_pet: Número máximo de pedidos.
             num_max_slots: Número máximo de slots.
+            node_range: Intervalo de nós permitidos.
         """
         self.env = env
         self.id = id
@@ -32,6 +33,7 @@ class LightPathGenerator:
         self.out: Optional[PacketSink] = None
         self.num_max_pet = num_max_pet
         self.num_max_slots = num_max_slots
+        self.node_range = node_range if node_range else range(numberNodes)
         self.flow_id = 0
         self.action = env.process(self.run())
 
@@ -50,7 +52,7 @@ class LightPathGenerator:
             yield self.env.timeout(random.expovariate(1.0 / self.timeBetweenReq))
 
             # O nodo de destino do pedido do lightpath é gerado aleatoriamente entre os restantes destinos
-            destino = list(range(1, self.numberNodes + 1))
+            destino = list(self.node_range)
 
             # Verifica se o próprio ID está na lista de destinos possíveis e o remove para evitar auto-envio
             if self.id in destino:

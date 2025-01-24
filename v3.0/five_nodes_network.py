@@ -1,14 +1,14 @@
-import time
-import simpy
 import networkx as nx
-import matplotlib.pyplot as plt
+import simpy
+import time
+from components.light_path_control import Control
+from components.light_path_generator import LightPathGenerator
 from rich.console import Console
 from rich.table import Table
 from rich.live import Live
 from rich.panel import Panel
 from rich.tree import Tree
-from components.light_path_control import Control
-from components.light_path_generator import LightPathGenerator as Generator
+import matplotlib.pyplot as plt
 
 console = Console()
 
@@ -48,12 +48,11 @@ def visualize_network(G):
 
 def setup_simulation(env, G, duration, show_resources, load):
     """Configura a simulação com geradores de lightpaths e controlador."""
-    # Habilitar a depuração para uma saída simples
-    ps = Control(env, G, debug=True, tab=show_resources)  
+    ps = Control(env, G, debug=True, tab=show_resources)  # Habilitar a depuração para uma saída simples
     console.print("[bold blue]Controlador criado e inicializado.[/bold blue]")
 
     # Criar os geradores de lightpaths
-    generators = [Generator(env, i, duration, load, numberNodes=5) for i in range(1, 6)]
+    generators = [LightPathGenerator(env, i, duration, load, numberNodes=5, node_range=range(1, 6)) for i in range(1, 6)]
 
     # Conectar os geradores de lightpaths ao controlador
     for pg in generators:
