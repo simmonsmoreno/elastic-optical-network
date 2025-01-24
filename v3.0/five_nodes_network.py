@@ -73,7 +73,6 @@ def real_time_step(env, start_time):
 
 def collect_statistics(control):
     """Coleta e exibe estatísticas da simulação."""
-
     if not control.pkt_sent:
         console.print("[bold red]Nenhum pacote foi enviado durante a simulação.[/bold red]")
     else:
