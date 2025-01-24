@@ -1,14 +1,14 @@
-import networkx as nx
-import simpy
 import time
-from components.light_path_control import Control
-from components.light_path_generator import LightPathGenerator as Generator
+import simpy
+import networkx as nx
+import matplotlib.pyplot as plt
 from rich.console import Console
 from rich.table import Table
 from rich.live import Live
 from rich.panel import Panel
 from rich.tree import Tree
-import matplotlib.pyplot as plt
+from components.light_path_control import Control
+from components.light_path_generator import LightPathGenerator as Generator
 
 console = Console()
 
