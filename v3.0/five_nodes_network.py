@@ -10,19 +10,23 @@ from rich.panel import Panel
 from rich.tree import Tree
 import matplotlib.pyplot as plt
 
+# Constantes
+NODES = [1, 2, 3, 4, 5]
+EDGES = [
+    (1, 2), (2, 1), (1, 4), (4, 1),
+    (2, 3), (3, 2), (2, 5), (5, 2),
+    (3, 5), (5, 3), (4, 5), (5, 4)
+]
+ALLOCATION_ALGORITHMS = {"0": "first_fit", "1": "best_gap"}
+
 console = Console()
 
 def create_network():
     """Cria o grafo da rede com 5 nós e arestas bidirecionais."""
     G = nx.DiGraph()
     console.print("[bold blue]Criação do grafo com 5 nós e arestas bidirecionais:[/bold blue]")
-    G.add_nodes_from([1, 2, 3, 4, 5])
-    edges = [
-        (1, 2), (2, 1), (1, 4), (4, 1),
-        (2, 3), (3, 2), (2, 5), (5, 2),
-        (3, 5), (5, 3), (4, 5), (5, 4)
-    ]
-    G.add_edges_from(edges)
+    G.add_nodes_from(NODES)
+    G.add_edges_from(EDGES)
     
     # Desenho do grafo
     tree = Tree("Rede Óptica")
@@ -48,7 +52,7 @@ def visualize_network(G):
 
 def setup_simulation(env, G, duration, show_resources, load, allocation_algorithm):
     """Configura a simulação com geradores de lightpaths e controlador."""
-    ps = Control(env, G, debug=True, tab=show_resources, allocation_algorithm=allocation_algorithm)  # Habilitar a depuração para uma saída simples
+    ps = Control(env, G, debug=True, tab=show_resources, allocation_algorithm=allocation_algorithm)
     console.print("[bold blue]Controlador criado e inicializado.[/bold blue]")
 
     # Criar os geradores de lightpaths
@@ -102,6 +106,20 @@ def analyze_performance(control):
     blocking_probability = len(control.pkt_lost) / total_requests if total_requests > 0 else 0
     console.print(f"[bold blue]Taxa de Bloqueio: {blocking_probability:.2f}[/bold blue]")
 
+def get_simulation_parameters():
+    """Obtém os parâmetros da simulação do usuário."""
+    try:
+        duration = float(input('Duração(s) >> '))
+        show_resources = input('Mostrar recursos (1 para True, 0 para False) >> ') == '1'
+        load = float(input('Carga de tráfego (0.0 a 1.0) >> '))
+        allocation_algorithm = ALLOCATION_ALGORITHMS.get(
+            input('Algoritmo de alocação (0 para first_fit, 1 para best_gap) >> '), "first_fit"
+        )
+        return duration, show_resources, load, allocation_algorithm
+    except ValueError:
+        console.print("[bold red]Erro: Por favor, insira um valor válido para a duração![/bold red]")
+        return None
+
 def main():
     """Função principal para configurar e executar a simulação."""
     # Criar o grafo da rede
@@ -111,23 +129,11 @@ def main():
     env = simpy.Environment()
     console.print("[bold blue]Ambiente de simulação SimPy criado.[/bold blue]")
 
-    # Definir a duração da simulação
-    try:
-        duration = float(input('Duração(s) >> '))
-        show_resources_input = input('Mostrar recursos (1 para True, 0 para False) >> ')
-        show_resources = show_resources_input == '1'    
-        load = float(input('Carga de tráfego (0.0 a 1.0) >> '))
-        allocation_algorithm_input = input('Algoritmo de alocação (0 para first_fit, 1 para best_gap) >> ')
-        if allocation_algorithm_input == '0':
-            allocation_algorithm = "first_fit"
-        elif allocation_algorithm_input == '1':
-            allocation_algorithm = "best_gap"
-        else:
-            console.print("[bold red]Erro: Inserido um valor inválido! first_fit assumido como algoritmo padrão[/bold red]")
-            allocation_algorithm = "first_fit"
-    except ValueError:
-        console.print("[bold red]Erro: Por favor, insira um valor válido para a duração![/bold red]")
+    # Obter parâmetros da simulação
+    params = get_simulation_parameters()
+    if params is None:
         return
+    duration, show_resources, load, allocation_algorithm = params
 
     # Configurar a simulação
     ps, generators = setup_simulation(env, G, duration, show_resources, load, allocation_algorithm)
